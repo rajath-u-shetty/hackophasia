@@ -13,11 +13,13 @@ export function FormConfig({
   onContinue,
   className,
   setKey,
+  setUrl,
   setLoading,
 }: {
   onContinue: (text: string) => void | Promise<void>;
   className?: string;
   setKey: (key: string) => void;
+  setUrl: (url: string) => void;
   setLoading: (loading: boolean) => void;
 }) {
   const [input, setInput] = useState<string>("");
@@ -126,10 +128,29 @@ export function FormConfig({
             <UploadDropzone
               endpoint="pdfUploader"
               onClientUploadComplete={(res) => {
-                console.log({ res });
-                setKey(res ? res[0].key : "");
-                setLoading(false);
-                setFileInput(null);
+                // Extract the first file's details
+                const fileInfo = res[0];
+
+                // Fetch the file using the URL
+                fetch(fileInfo.url)
+                  .then(response => response.blob())
+                  .then(blob => {
+                    // Create a File object from the blob
+                    const file = new File([blob], fileInfo.name, {
+                      type: fileInfo.type
+                    });
+
+                    // Set the fileInput state with the file
+                    setFileInput([file]);
+
+                    // Set other states
+                    setKey(fileInfo.key);
+                    setUrl(fileInfo.url);
+                    setLoading(false);
+                  })
+                  .catch(error => {
+                    console.error("Error fetching file:", error);
+                  });
               }}
             />
             <p className="text-[0.8rem] text-muted-foreground">

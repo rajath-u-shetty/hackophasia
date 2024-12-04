@@ -9,13 +9,17 @@ import { ErrorAlert } from "@/components/alerts/ErrorAlert";
 import { EmptyAlert } from "@/components/alerts/EmptyAlert";
 import { Tutor } from "@prisma/client";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { LoadingCards } from "@/components/cards/LoadingCards";
 import { ListCard } from "@/components/cards/ListCard";
 import { toast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import LanguageFileUpload from "@/components/LanguageFileUpload";
+import LanguageImageUpload from "@/components/LanguageImageUpload";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 export default function TutorsPage() {
   const router = useRouter();
@@ -64,7 +68,8 @@ export default function TutorsPage() {
         </p>
       </div>
       <div className="flex items-center space-x-2 mt-4">
-        <Input
+        <Textarea
+          rows={4}
           onChange={(e) => setSearch(e.target.value)}
           value={search}
           placeholder="Search AI tutors..."
@@ -76,12 +81,17 @@ export default function TutorsPage() {
             Add New... <Plus className="h-4 w-4 ml-2" />
           </Button>
         ) : (
-          <Link href="/tutors/new" className="shrink-0">
-            <Button>
+          <div className="w-[200px]">
+            <Link
+              href="/tutors/new" className={cn(buttonVariants(),"min-w-[200px]")}>
               Add New...
               <Plus className="h-4 w-4 ml-2" />
-            </Button>
-          </Link>
+            </Link>
+            <div className="flex items-center space-x-2 mt-4">
+              <LanguageFileUpload />
+              <LanguageImageUpload />
+            </div>
+          </div>
         )}
       </div>
       <div className="mt-6">

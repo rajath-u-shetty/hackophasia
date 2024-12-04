@@ -26,6 +26,7 @@ export default function NewTutor() {
   const [sourceText, setSourceText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [key, setKey] = useState<string>("");
+  const [url, setUrl] = useState<string>("");
 
   function toSubmitPage(text: string) {
     setSourceText(text);
@@ -57,6 +58,7 @@ export default function NewTutor() {
           description,
           source: sourceText,
           key,
+          url,
         }),
       });
 
@@ -122,6 +124,7 @@ export default function NewTutor() {
         <CardContent>
           <FormConfig
             setLoading={setLoading}
+            setUrl={setUrl}
             setKey={setKey}
             onContinue={toSubmitPage}
             className={cn(page != "config" && "hidden")}

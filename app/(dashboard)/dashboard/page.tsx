@@ -1,6 +1,7 @@
 "use client";
 
 import LanguageFileUpload from "@/components/LanguageFileUpload";
+import LanguageImageUpload from "@/components/LanguageImageUpload";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,7 +27,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { title } from "process";
 import { PureComponent, useId } from "react";
 import { useQuery } from "react-query";
 import { v4 as uuidv4 } from "uuid";
@@ -88,7 +88,7 @@ export default function DashboardPage() {
   return (
     <main className="flex-1 px-4 py-10 md:py-16 max-w-4xl xl:max-w-6xl mx-auto flex flex-col gap-6">
       <div className="flex flex-col space-y-1">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-500 via-sky-500 to-indigo-500 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold">
           Dashboard
         </h1>
         <p className="text-muted-foreground font-medium ">

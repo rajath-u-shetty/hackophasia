@@ -33,8 +33,10 @@ import SimpleBar from 'simplebar-react'
 import { useToast } from './ui/use-toast'
 import PdfFullscreen from './FullScreenPdfRenderer'
 
-// Explicitly set the worker source with the exact version
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.js",
+  import.meta.url
+).toString();
 
 interface PdfRendererProps {
   url: string
@@ -89,7 +91,7 @@ const PdfRenderer = ({ url }: PdfRendererProps) => {
   }
 
   return (
-    <div className='w-full bg-white rounded-md shadow flex flex-col items-center'>
+    <div className='w-full overflow-hidden bg-white rounded-md shadow flex flex-col items-center'>
       <div className='h-14 w-full border-b border-zinc-200 flex items-center justify-between px-2'>
         <div className='flex items-center gap-1.5'>
           <Button

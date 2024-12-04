@@ -27,16 +27,16 @@ export function Header() {
         </div>
       </div>
 
-      <div className="flex items-center gap-5">
-        <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-8">
+        <div className="flex items-center gap-5">
           <ThemeButton />
           <a href="https://discord.com">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="sm">
               <FaDiscord className="h-5 w-5" />
             </Button>
           </a>
           <a href="">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="sm">
               <GitHubLogoIcon className="h-5 w-5" />
             </Button>
           </a>

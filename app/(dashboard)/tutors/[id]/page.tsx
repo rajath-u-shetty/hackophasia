@@ -1,5 +1,4 @@
 "use client";
-
 import { useQuery } from "react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
@@ -13,9 +12,12 @@ import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ExtendedTutor } from "@/types/prisma";
 import PdfRenderer from "@/components/PdfRenderer";
+import { useState } from "react";
 
 export default function TutorPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const [isScrollStable, setIsScrollStable] = useState(true);
+
   const {
     messages,
     input,
@@ -43,11 +45,9 @@ export default function TutorPage({ params }: { params: { id: string } }) {
         throw new Error("Network response was not ok");
       }
       const data = await res.json();
-      console.log(data);
       return data;
     },
     onSuccess: (data) => {
-      console.log(data);
       if (data.messages.length) {
         const initMessages = data.messages.map((message) => ({
           id: message.id,
@@ -58,7 +58,6 @@ export default function TutorPage({ params }: { params: { id: string } }) {
       }
     },
     onError: (data) => {
-      console.log(data);
       toast({
         title: "Uh oh, something went wrong!",
         description: <p>There was an error loading the AI tutor.</p>,
@@ -73,8 +72,11 @@ export default function TutorPage({ params }: { params: { id: string } }) {
   });
 
   return (
-    <div className="flex gap-4 items-start justify-between">
-      <div className="flex flex-col flex-1 max-w-4xl mx-auto w-full pt-10 md:pt-16 px-4 gap-10">
+    <div className="flex gap-4 py-10 px-8 items-start justify-between h-screen overflow-hidden">
+      <div className="w-2/5 h-full overflow-auto border border-gray-300 rounded-md p-10">
+        <PdfRenderer url={tutor?.url ?? ""} />
+      </div>
+      <div className="flex flex-col flex-1 max-w-4xl mx-auto w-full pt-10 md:pt-16 px-4 gap-10 h-full overflow-auto border border-gray-300 rounded-md p-10">
         {isLoading ? (
           <div className="flex w-full justify-center py-8">
             <Loader2 className="animate-spin" />
@@ -83,7 +85,7 @@ export default function TutorPage({ params }: { params: { id: string } }) {
           tutor && (
             <>
               <div className="flex flex-col gap-6">
-                <div className="w-full gap-4 flex justify-between items-center ">
+                <div className="w-full gap-4 flex justify-between items-center">
                   <div className="flex flex-col w-full">
                     <h3 className="font-bold text-2xl">{tutor?.title}</h3>
                     <p className="font-medium text-muted-foreground">
@@ -111,7 +113,6 @@ export default function TutorPage({ params }: { params: { id: string } }) {
           setInput={setInput}
         />
       </div>
-      <PdfRenderer url={tutor?.url ?? ""} />
     </div>
   );
 }

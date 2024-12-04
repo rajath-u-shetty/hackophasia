@@ -9,11 +9,12 @@ export async function POST(req: NextRequest) {
   if (!session)
     return NextResponse.json({ error: "Unauthroized request", status: 401 });
 
-  const { title, description, source, key } = (await req.json()) as {
+  const { title, description, source, key, url } = (await req.json()) as {
     title?: string;
     description?: string;
     source?: string;
     key?: string;
+    url?: string;
   };
 
   if (!title || !description || !source)
@@ -28,17 +29,19 @@ export async function POST(req: NextRequest) {
 
   const doesTutorExist = await prisma.tutor.findFirst({
     where: {
-      id: key,
+      key: key,
     },
   });
 
   if (doesTutorExist) {
     await prisma.tutor.update({
       where: {
-        id: key,
+        id: doesTutorExist.id,
       },
       data: {
         title,
+        name : doesTutorExist.name,
+        url: doesTutorExist.url,
         description,
         source,
         userId: session.user.id,
@@ -49,6 +52,7 @@ export async function POST(req: NextRequest) {
 
   const newTutor = await prisma.tutor.create({
     data: {
+      url,
       title,
       key,
       description,

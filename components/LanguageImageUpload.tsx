@@ -18,22 +18,22 @@ import { useUploadThing } from "@/lib/uploadthing";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import { ArrowRight, Cloud, File, Loader2, Swords } from "lucide-react";
+import { Cloud, File, Loader2 } from "lucide-react";
 import { useState } from "react";
 import Dropzone from "react-dropzone";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button, buttonVariants } from "./ui/button";
+import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { useToast } from "./ui/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 
 const UploadDropzone = () => {
   const { toast } = useToast();
 
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [fileUrl, setFileUrl] = useState<string>("");
+  const [translatedTextFromPhoto, setTranslatedTextFromPhoto] =
+    useState<string>("");
   const [uplodedDocument, setUploadedDocument] = useState<any>();
   const [finishUploading, setFinishUploading] = useState<boolean>(false);
 
@@ -55,33 +55,52 @@ const UploadDropzone = () => {
   });
 
   const onSubmitForm1 = async (data: z.infer<typeof FormSchema>) => {
-    setFinishUploading(true)
+    setFinishUploading(true);
     const options = {
       method: "POST",
-      url: "https://api.edenai.run/v2/translation/document_translation",
+      url: "https://api.edenai.run/v2/ocr/ocr",
       headers: {
         Authorization:
           "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiODg1NjhmYTktM2ZlNy00MGU1LTg1ZDctYmVlNGVmODcyZjFhIiwidHlwZSI6ImFwaV90b2tlbiJ9.EWzT_bUTkMXIgqgcxzFKIw_Cl1n3gv5oejkLYnY4ONw",
       },
       data: {
         providers: "google",
-        source_language: "en",
-        target_language: data.language ? data.language : "hi",
+        // source_language: "en",
         file_url: uplodedDocument,
-        fallback_providers: "",
+        fallback_providers: "google",
       },
     };
     axios
       .request(options)
       .then((response) => {
-        setFileUrl(response.data.google.document_resource_url);
+        console.log(response.data.google.text);
+        axios
+          .post(
+            "https://translation.googleapis.com/language/translate/v2",
+            {},
+            {
+              params: {
+                q: response.data.google.text,
+                target: data.language,
+                key: "AIzaSyCHUCmpR7cT_yDFHC98CZJy2LTms-IwDlM",
+              },
+            }
+          )
+          .then((response) => {
+            setTranslatedTextFromPhoto(
+              response.data.data.translations[0].translatedText
+            );
+          })
+          .catch((err) => {
+            console.log("rest api error", err);
+          });
       })
       .catch((error) => {
         console.error(error);
       });
   };
 
-  const { startUpload } = useUploadThing("documentUpload");
+  const { startUpload } = useUploadThing("imageUpload");
 
   const startSimulatedProgress = () => {
     setUploadProgress(0);
@@ -99,19 +118,10 @@ const UploadDropzone = () => {
     return interval;
   };
 
-  if (fileUrl)
+  if (translatedTextFromPhoto)
     return (
-      <div className="flex flex-col items-center justify-evenly gap-12 py-24 px-6">
-        <h1 className="text-xl font-semibold">
-          Document translated successfully
-        </h1>
-        <a
-          href={fileUrl}
-          target="_blank"
-          className={cn(buttonVariants({ variant: "language" }), "w-full")}
-        >
-          Download Now
-        </a>
+      <div className="text-center text-xl font-bold text-white mt-10 mb-10 bg-slate-700 p-5 rounded-lg shadow-lg shadow-slate-900/50 dark:shadow-slate-900/50 dark:bg-slate-800 dark:text-slate-200 min-w-full mx-auto">
+        {translatedTextFromPhoto}
       </div>
     );
 
@@ -125,10 +135,6 @@ const UploadDropzone = () => {
 
         // handle file uploading
         const res = await startUpload(acceptedFile);
-        console.log(acceptedFile[0].type);
-        console.log(typeof acceptedFile[0].type);
-
-        console.log({ res });
 
         if (!res) {
           return toast({
@@ -159,7 +165,7 @@ const UploadDropzone = () => {
         <div>
           <div
             {...getRootProps()}
-            className="h-64 m-4 border-dashed border-gray-300 border-2 rounded-lg"
+            className="border h-64 m-4 border-dashed border-gray-300 rounded-lg"
           >
             <div className="flex items-center justify-center h-full w-full">
               <label
@@ -180,7 +186,7 @@ const UploadDropzone = () => {
                     <div className="px-3 py-2 h-full grid place-items-center">
                       <File className="h-4 w-4 text-blue-500" />
                     </div>
-                    <div className="px-3 py-2 h-full text-sm truncate text-black">
+                    <div className="px-3 py-2 h-full text-sm truncate">
                       {acceptedFiles[0].name}
                     </div>
                   </div>
@@ -196,13 +202,13 @@ const UploadDropzone = () => {
                       className="h-1 w-full bg-zinc-200"
                     />
                     {uploadProgress === 100 && !finishUploading ? (
-                      <div className="flex gap-1 items-center justify-center text-sm text-zinc-700 dark:text-white text-center pt-2">
+                      <div className="flex gap-1 items-center justify-center text-sm text-zinc-700 text-center pt-2">
                         Select language
                       </div>
                     ) : null}
                     {finishUploading ? (
                       <div className="flex gap-1 items-center justify-center text-sm text-zinc-700 text-center pt-2">
-                        <Loader2 className="h-4 w-4 text-blue-500 animate-spin dark:text-white" />
+                        <Loader2 className="h-3 w-3 animate-spin" />
                         Translating...
                       </div>
                     ) : null}
@@ -223,7 +229,7 @@ const UploadDropzone = () => {
               <form
                 onSubmit={form.handleSubmit(onSubmitForm1)}
                 className="space-y-6 flex-1"
-                id="file-input"
+                id="image-input"
               >
                 <FormField
                   control={form.control}
@@ -235,7 +241,12 @@ const UploadDropzone = () => {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className={cn(" min-w-48 md:min-w-[180px]", { "focus-visible:ring-red-500": form.formState.errors.language })}>
+                          <SelectTrigger
+                            className={cn(" min-w-48 md:min-w-[180px]", {
+                              "focus-visible:ring-red-500":
+                                form.formState.errors.language,
+                            })}
+                          >
                             <SelectValue placeholder="Select Language" />
                           </SelectTrigger>
                         </FormControl>
@@ -257,7 +268,12 @@ const UploadDropzone = () => {
                 />
               </form>
             </Form>
-            <Button variant="language" form="file-input" type="submit" disabled={!uplodedDocument}>
+            <Button
+              form="image-input"
+              type="submit"
+              disabled={!uplodedDocument}
+              variant="language"
+            >
               Submit
             </Button>
           </div>
@@ -267,7 +283,7 @@ const UploadDropzone = () => {
   );
 };
 
-const LanguageFileUpload = () => {
+const LanguageImageUpload = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (
@@ -280,7 +296,7 @@ const LanguageFileUpload = () => {
       }}
     >
       <DialogTrigger asChild onClick={() => setIsOpen(true)}>
-        <Button variant="language" className="flex-1 py-2 hover:scale-110 transition-all duration-200">Document</Button>
+        <Button variant="language" className="flex-1 py-2">Photo</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <UploadDropzone />
@@ -289,5 +305,4 @@ const LanguageFileUpload = () => {
   );
 };
 
-export default LanguageFileUpload;
-
+export default LanguageImageUpload;
