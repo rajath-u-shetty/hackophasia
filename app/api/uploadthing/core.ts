@@ -1,34 +1,130 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { UploadThingError } from "uploadthing/server";
- 
+
+import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+import { OpenAIEmbeddings } from "langchain/embeddings/openai";
+import { PineconeStore } from "langchain/vectorstores/pinecone";
+import { pinecone } from "@/lib/pinecone";
+import { getAuthSession } from "@/lib/auth";
+import prisma from "@/prisma/client";
+
 const f = createUploadthing();
- 
-const auth = (req: Request) => ({ id: "fakeId" }); // Fake auth function
- 
-// FileRouter for your app, can contain multiple FileRoutes
+
+const middleware = async () => {
+  const session = await getAuthSession();
+    const user = session?.user;
+
+  if (!user || !user.id) throw new Error("Unauthorized");
+
+  return { userId: user.id };
+
+};
+
+const onUploadComplete = async ({
+  metadata,
+  file,
+}: {
+  metadata: Awaited<ReturnType<typeof middleware>>;
+  file: {
+    key: string;
+    name: string;
+    url: string;
+  };
+}) => {
+  const isFileExist = await prisma.tutor.findFirst({
+    where: {
+      key: file.key,
+    },
+  });
+
+  if (isFileExist) return;
+
+  try {
+    const createdFile = await prisma.tutor.create({
+      data: {
+        key: `${file.name}+${file.url}`,
+        name: file.name,
+        userId: metadata.userId,
+        url: file.url,
+        uploadStatus: "PROCESSING",
+      },
+    });
+
+    if (createdFile) {
+      await prisma.generation.create({
+        data: {
+          userId: metadata.userId,
+          type: "tutor",
+        },
+      });
+    }
+    console.log(createdFile)
+    console.log("File Uploaded")
+
+    try {
+      const response = await fetch(
+        file.url
+      );
+
+      const blob = await response.blob();
+
+      const loader = new PDFLoader(blob);
+
+      const pageLevelDocs = await loader.load();
+      console.log(pageLevelDocs);
+
+      const pagesAmt = pageLevelDocs.length;
+
+      // vectorize and index entire document
+      const pineconeIndex = pinecone.Index("byte-busters");
+      const embeddings = new OpenAIEmbeddings({
+        openAIApiKey: process.env.OPENAI_API_KEY,
+      });
+
+      await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
+        pineconeIndex,
+      });
+
+      await prisma.tutor.update({
+        data: {
+          uploadStatus: "SUCCESS",
+        },
+        where: {
+          id: createdFile.id,
+        },
+      });
+    } catch (err) {
+      console.log(err);
+      await prisma.tutor.update({
+        data: {
+          uploadStatus: "FAILED",
+        },
+        where: {
+          id: createdFile.id,
+        },
+      });
+    }
+  } catch (error: any) {
+    console.log(error)
+  };
+};
+
 export const ourFileRouter = {
-  // Define as many FileRoutes as you like, each with a unique routeSlug
-  imageUploader: f({ image: { maxFileSize: "4MB" } })
-    // Set permissions and file types for this FileRoute
-    .middleware(async ({ req }) => {
-      // This code runs on your server before upload
-      const user = await auth(req);
- 
-      // If you throw, the user will not be able to upload
-      if (!user) throw new UploadThingError("Unauthorized");
- 
-      // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: user.id };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
-      // This code RUNS ON YOUR SERVER after upload
-      console.log("Upload complete for userId:", metadata.userId);
- 
-      console.log("file url", file.url);
- 
-      // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-      return { uploadedBy: metadata.userId };
-    }),
+  freePlanUploader: f({ pdf: { maxFileSize: "16MB" } })
+    .middleware(middleware)
+    .onUploadComplete(onUploadComplete),
+  documentUpload: f({
+    pdf: { maxFileSize: "16MB" },
+    text: { maxFileSize: "16MB" },
+    blob: { maxFileSize: "16MB" },
+  })
+    .middleware(middleware)
+    .onUploadComplete(onUploadComplete),
+  imageUpload: f({
+    image: { maxFileSize: "16MB" },
+  })
+    .middleware(middleware)
+    .onUploadComplete(onUploadComplete),
 } satisfies FileRouter;
- 
+
 export type OurFileRouter = typeof ourFileRouter;
+
