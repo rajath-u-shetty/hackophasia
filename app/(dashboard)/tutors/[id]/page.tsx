@@ -12,6 +12,7 @@ import { ChatScrollAnchor } from "@/components/tutors/ChatScrollAnchor";
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ExtendedTutor } from "@/types/prisma";
+import PdfRenderer from "@/components/PdfRenderer";
 
 export default function TutorPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -72,42 +73,45 @@ export default function TutorPage({ params }: { params: { id: string } }) {
   });
 
   return (
-    <div className="flex flex-col flex-1 max-w-4xl mx-auto w-full pt-10 md:pt-16 px-4 gap-10">
-      {isLoading ? (
-        <div className="flex w-full justify-center py-8">
-          <Loader2 className="animate-spin" />
-        </div>
-      ) : (
-        tutor && (
-          <>
-            <div className="flex flex-col gap-6">
-              <div className="w-full gap-4 flex justify-between items-center ">
-                <div className="flex flex-col w-full">
-                  <h3 className="font-bold text-2xl">{tutor?.title}</h3>
-                  <p className="font-medium text-muted-foreground">
-                    {tutor?.description}
-                  </p>
+    <div className="flex gap-4 items-start justify-between">
+      <div className="flex flex-col flex-1 max-w-4xl mx-auto w-full pt-10 md:pt-16 px-4 gap-10">
+        {isLoading ? (
+          <div className="flex w-full justify-center py-8">
+            <Loader2 className="animate-spin" />
+          </div>
+        ) : (
+          tutor && (
+            <>
+              <div className="flex flex-col gap-6">
+                <div className="w-full gap-4 flex justify-between items-center ">
+                  <div className="flex flex-col w-full">
+                    <h3 className="font-bold text-2xl">{tutor?.title}</h3>
+                    <p className="font-medium text-muted-foreground">
+                      {tutor?.description}
+                    </p>
+                  </div>
+                  <TutorSettings tutor={tutor} />
                 </div>
-                <TutorSettings tutor={tutor} />
               </div>
-            </div>
-            <div className="pb-[200px]">
-              <ChatList messages={messages} />
-              <ChatScrollAnchor
-                trackVisibility={isChatLoading}
-                messages={messages}
-              />
-            </div>
-          </>
-        )
-      )}
-      <ChatForm
-        isLoading={isChatLoading}
-        input={input}
-        handleInputChange={handleInputChange}
-        append={append}
-        setInput={setInput}
-      />
+              <div className="pb-[200px]">
+                <ChatList messages={messages} />
+                <ChatScrollAnchor
+                  trackVisibility={isChatLoading}
+                  messages={messages}
+                />
+              </div>
+            </>
+          )
+        )}
+        <ChatForm
+          isLoading={isChatLoading}
+          input={input}
+          handleInputChange={handleInputChange}
+          append={append}
+          setInput={setInput}
+        />
+      </div>
+      <PdfRenderer url={tutor?.url ?? ""} />
     </div>
   );
 }

@@ -1,5 +1,3 @@
-"use client";
-
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -9,16 +7,21 @@ import { useState } from "react";
 import { toast } from "../ui/use-toast";
 import { cn } from "@/lib/utils";
 import { reduceText } from "@/lib/reduce-text";
+import { UploadDropzone, useUploadThing } from "@/lib/uploadthing";
 
 export function FormConfig({
   onContinue,
   className,
+  setKey,
+  setLoading,
 }: {
   onContinue: (text: string) => void | Promise<void>;
   className?: string;
+  setKey: (key: string) => void;
+  setLoading: (loading: boolean) => void;
 }) {
   const [input, setInput] = useState<string>("");
-  const [fileInput, setFileInput] = useState<FileList | null>(null);
+  const [fileInput, setFileInput] = useState<File[] | null>(null);
   const [tabValue, setTabValue] = useState<string>("upload");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [link, setLink] = useState<string>("");
@@ -120,10 +123,14 @@ export function FormConfig({
       <TabsContent value="upload">
         <div className="flex flex-col space-y-4 mt-2">
           <div className="space-y-1.5">
-            <Input
-              type="file"
-              accept="text/plain, application/pdf, video/mp4, video/x-m4v, video/*, audio/*"
-              onChange={(e) => setFileInput(e.target.files)}
+            <UploadDropzone
+              endpoint="pdfUploader"
+              onClientUploadComplete={(res) => {
+                console.log({ res });
+                setKey(res ? res[0].key : "");
+                setLoading(false);
+                setFileInput(null);
+              }}
             />
             <p className="text-[0.8rem] text-muted-foreground">
               Upload a plain text, pdf, video, or audio file.

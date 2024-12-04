@@ -5,6 +5,9 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/config/site";
 
+import "@uploadthing/react/styles.css";
+
+
 export const metadata: Metadata = {
   title: siteConfig.name,
   description: siteConfig.description,

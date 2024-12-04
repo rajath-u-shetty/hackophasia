@@ -127,6 +127,30 @@ export const ourFileRouter = {
   })
     .middleware(middleware)
     .onUploadComplete(onUploadComplete),
+  pdfUploader: f({
+    pdf: { maxFileSize: "16MB", maxFileCount: 1 },
+  })
+    .middleware(middleware)
+    .onUploadComplete(async ({ metadata, file }) => {
+      const createdFile = await prisma.tutor.create({
+        data: {
+          title: file.name,
+          source: "",
+          description: "",
+          key: `${file.name}+${file.url}`,
+          name: file.name,
+          userId: metadata.userId,
+          url: file.url,
+          uploadStatus: "PROCESSING",
+        },
+      })
+      return {
+        url: file.url,
+        key: createdFile.id,
+        name: file.name,
+        id: createdFile.id,
+      };
+    })
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;
