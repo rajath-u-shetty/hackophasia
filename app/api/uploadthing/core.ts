@@ -11,7 +11,7 @@ const f = createUploadthing();
 
 const middleware = async () => {
   const session = await getAuthSession();
-    const user = session?.user;
+  const user = session?.user;
 
   if (!user || !user.id) throw new Error("Unauthorized");
 
@@ -41,6 +41,9 @@ const onUploadComplete = async ({
   try {
     const createdFile = await prisma.tutor.create({
       data: {
+        title: file.name,
+        source: file.url,
+        description: file.name,
         key: `${file.name}+${file.url}`,
         name: file.name,
         userId: metadata.userId,

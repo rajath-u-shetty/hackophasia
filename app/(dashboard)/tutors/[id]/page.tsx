@@ -90,7 +90,6 @@ export default function TutorPage({ params }: { params: { id: string } }) {
                 </div>
                 <TutorSettings tutor={tutor} />
               </div>
-              <Separator />
             </div>
             <div className="pb-[200px]">
               <ChatList messages={messages} />

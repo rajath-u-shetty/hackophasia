@@ -29,7 +29,7 @@ export function ChatMessage({ message }: { message: Message }) {
             <AvatarFallback className="h-8 w-8 bg-secondary" />
           </Avatar>
         ) : (
-          <div className="w-8 h-8 bg-primary shrink-0 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 dark:bg-white bg-black shrink-0 rounded-lg flex items-center justify-center">
             <div className="h-4 w-4 text-background">
               <SiOpenai />
             </div>
@@ -49,7 +49,7 @@ export function ChatMessage({ message }: { message: Message }) {
                 <TooltipTrigger asChild>
                   <Button
                     className="h-7 w-7"
-                    size="icon"
+                    size="sm"
                     variant="ghost"
                     onClick={() => copyToClipboard(message.content)}
                   >

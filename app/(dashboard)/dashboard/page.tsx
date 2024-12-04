@@ -1,5 +1,6 @@
 "use client";
 
+import LanguageFileUpload from "@/components/LanguageFileUpload";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,6 +33,12 @@ import { v4 as uuidv4 } from "uuid";
 
 const cards = [
   {
+    title: "AI tutors",
+    icon: <MessagesSquare className="h-4 w-4 mr-2" />,
+    description: "View, create, edit, and deleted AI tutors!",
+    href: "/tutors",
+  },
+  {
     title: "Quizzes",
     icon: <FileText className="h-4 w-4 mr-2" />,
     description: "View, create, edit, and delete AI generated quizes!",
@@ -42,12 +49,6 @@ const cards = [
     icon: <Copy className="h-4 w-4 mr-2" />,
     description: "View, create, edit, and delete AI generated flashcard sets!",
     href: "/flashcard-sets",
-  },
-  {
-    title: "AI tutors",
-    icon: <MessagesSquare className="h-4 w-4 mr-2" />,
-    description: "View, create, edit, and deleted AI tutors!",
-    href: "/tutors",
   },
   {
     title: "Summary",

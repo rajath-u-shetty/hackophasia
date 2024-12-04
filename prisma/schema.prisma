@@ -103,14 +103,28 @@ model Flashcard {
 }
 
 model Tutor {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   title       String
   description String
   source      String
   userId      String
-  createdAt   DateTime  @default(now())
-  messages    Message[]
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  name         String?
+  uploadStatus UploadStatus @default(PENDING)
+
+  url String?
+  key String?
+
+  messages Message[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum UploadStatus {
+  PENDING
+  PROCESSING
+  FAILED
+  SUCCESS
 }
 
 model Message {
